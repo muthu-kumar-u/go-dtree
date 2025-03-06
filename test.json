@@ -1,0 +1,56 @@
+{
+  "root": {
+    "predict": "ShouldBuy",
+    "branches": [
+      {
+        "condition": {
+          "type": "bool",
+          "value": true
+        },
+        "outcome": {
+          "nextNode": {
+            "predict": "CheckBudget",
+            "branches": [
+              {
+                "condition": {
+                  "type": "bool",
+                  "value": false
+                },
+                "outcome": {
+                  "nextNode": {
+                    "predict": "Buy",
+                    "branches": []
+                  }
+                }
+              },
+              {
+                "condition": {
+                  "type": "bool",
+                  "value": true
+                },
+                "outcome": {
+                  "nextNode": {
+                    "predict": "Don't Buy",
+                    "branches": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "condition": {
+          "type": "bool",
+          "value": false
+        },
+        "outcome": {
+          "nextNode": {
+            "predict": "Don't Buy",
+            "branches": []
+          }
+        }
+      }
+    ]
+  }
+}
