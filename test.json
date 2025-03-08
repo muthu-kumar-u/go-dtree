@@ -1,5 +1,7 @@
 {
   "root": {
+    "node_id": 1,
+    "question": "Do you want to buy something?",
     "predict": "ShouldBuy",
     "branches": [
       {
@@ -9,6 +11,8 @@
         },
         "outcome": {
           "nextNode": {
+            "node_id": 2,
+            "question": "Do you have enough budget?",
             "predict": "CheckBudget",
             "branches": [
               {
@@ -18,8 +22,93 @@
                 },
                 "outcome": {
                   "nextNode": {
-                    "predict": "Buy",
-                    "branches": []
+                    "node_id": 3,
+                    "question": "Is the product necessary?",
+                    "predict": "NecessityCheck",
+                    "branches": [
+                      {
+                        "condition": {
+                          "type": "bool",
+                          "value": true
+                        },
+                        "outcome": {
+                          "nextNode": {
+                            "node_id": 4,
+                            "question": "Can you find a cheaper alternative?",
+                            "predict": "AlternativeCheck",
+                            "branches": [
+                              {
+                                "condition": {
+                                  "type": "bool",
+                                  "value": true
+                                },
+                                "outcome": {
+                                  "nextNode": {
+                                    "node_id": 5,
+                                    "question": "Will waiting help?",
+                                    "predict": "WaitingCheck",
+                                    "branches": [
+                                      {
+                                        "condition": {
+                                          "type": "bool",
+                                          "value": true
+                                        },
+                                        "outcome": {
+                                          "nextNode": {
+                                            "node_id": 6,
+                                            "predict": "Don't Buy",
+                                            "branches": []
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "condition": {
+                                          "type": "bool",
+                                          "value": false
+                                        },
+                                        "outcome": {
+                                          "nextNode": {
+                                            "node_id": 7,
+                                            "predict": "Buy",
+                                            "branches": []
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              {
+                                "condition": {
+                                  "type": "bool",
+                                  "value": false
+                                },
+                                "outcome": {
+                                  "nextNode": {
+                                    "node_id": 8,
+                                    "predict": "Buy",
+                                    "branches": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "condition": {
+                          "type": "bool",
+                          "value": false
+                        },
+                        "outcome": {
+                          "nextNode": {
+                            "node_id": 9,
+                            "predict": "Don't Buy",
+                            "branches": []
+                          }
+                        }
+                      }
+                    ]
                   }
                 }
               },
@@ -30,6 +119,7 @@
                 },
                 "outcome": {
                   "nextNode": {
+                    "node_id": 10,
                     "predict": "Don't Buy",
                     "branches": []
                   }
@@ -46,6 +136,7 @@
         },
         "outcome": {
           "nextNode": {
+            "node_id": 11,
             "predict": "Don't Buy",
             "branches": []
           }

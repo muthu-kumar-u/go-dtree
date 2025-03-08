@@ -94,29 +94,32 @@ func (t *Tree) Decide(data map[string]interface{}) (*Node, error) {
     }
 
     currentNode := t.Root
+
     for currentNode != nil {
-		if currentNode.Predict == data["predict"].(string) {
-			nextNode, err := currentNode.Traverse(data)
-			if err != nil {
-				return nil, err
-			}
-	
-			if nextNode == nil {
-				return nil, nil
-			} else {
-				return nextNode, nil 
-			}
-		}
-		fmt.Println("104")
+        value, exists := data[currentNode.Predict]
+        if !exists {
+            return nil, fmt.Errorf("missing decision input for: %s", currentNode.Predict)
+        }
+
+        nextNode, err := currentNode.Traverse(value)
+        if err != nil {
+            return nil, err
+        }
+
+        if nextNode == nil || len(nextNode.Branches) == 0 {
+            return nextNode, nil
+        }
+
+        currentNode = nextNode
     }
 
     return nil, ErrorInvalidNodeName
 }
 
-func (n *Node) Traverse(input map[string]interface{}) (*Node, error) {
+func (n *Node) Traverse(input interface{}) (*Node, error) {
     for _, branch := range n.Branches {
         conditionValue, ok := branch.Condition.Value.(bool)
-        inputValue, inputOk := input["value"].(bool)
+        inputValue, inputOk := input.(bool)
 
         if ok && inputOk && conditionValue == inputValue { 
             return branch.Outcome.NextNode, nil
@@ -125,7 +128,7 @@ func (n *Node) Traverse(input map[string]interface{}) (*Node, error) {
     return nil, ErrorInvalidNodeName
 }
 
-func (n *Node) AddNewNodeToTree(node *Node) (*Node, error) {
+func (n *Tree) AddNewNodeToTree(node *Node) (*Node, error) {
 	var branches []*Branch
 	for _, branchData := range node.Branches {
 		condition := &Condition{
@@ -133,10 +136,10 @@ func (n *Node) AddNewNodeToTree(node *Node) (*Node, error) {
 			Value: branchData.Condition.Value,
 		}
 
-		outcome := &Outcome{NextNode: nil} 
+		outcome := &Outcome{NextNode: branchData.Outcome.NextNode} 
 		if branchData.Outcome != nil {
 			if branchData.Outcome.NextNode != nil {
-				nextNode, err := n.AddOrCreateNode(branchData.Outcome.NextNode)
+				nextNode, err := AddOrCreateNode(branchData.Outcome.NextNode)
 				if err != nil {
 					return nil, err
 				}
@@ -157,7 +160,7 @@ func (n *Node) AddNewNodeToTree(node *Node) (*Node, error) {
 	}, nil
 }
 
-func (n *Node) AddOrCreateNode(node *Node) (*Node, error) {
+func AddOrCreateNode(node *Node) (*Node, error) {
 	var branches []*Branch
 
 	for _, branch := range node.Branches {
@@ -172,37 +175,49 @@ func (n *Node) AddOrCreateNode(node *Node) (*Node, error) {
 	}, nil
 }
 
-func (b *Branch) AddOrCreateBranch(branch *Branch) (*Branch, error) {
-	newBranch := &Branch{}
-
-	if branch.Condition != nil {
-		newBranch.Condition = branch.Condition 
-	}
-
-	if branch.Outcome != nil {
-		newBranch.Outcome = branch.Outcome
+func AddOrCreateBranch(branch []*Branch) ([]*Branch, error) {
+	newBranch := []*Branch{}
+	for i, branch := range branch {
+	
+		if branch.Condition != nil {
+			newBranch[i].Condition = branch.Condition 
+		}
+	
+		if branch.Outcome != nil {
+			newBranch[i].Outcome = branch.Outcome
+		}
 	}
 
 	return newBranch, nil
 }
 
-func (c *Condition) AddOrCreateCondition(condition *Condition) (*Condition, error){
-	switch condition.Type {
-	case "bool":
-		return &Condition{Type: condition.Type, Value: condition.Value}, nil
-	case "comparison":
-		return &Condition{Type: condition.Type, Value: condition.Value}, nil	
-	default:
-		return nil, ErrorConditionData
+func AddOrCreateCondition(condition []*Condition) ([]*Condition, error){
+ 	newCondition := []*Condition{}
+	for _, con := range condition {
+		switch con.Type {
+		case "bool":
+			newCondition = append(newCondition, &Condition{Type: con.Type, Value: con.Value})
+			continue
+		case "comparison":
+			newCondition = append(newCondition, &Condition{Type: con.Type, Value: con.Value})
+			continue
+		default:
+			 return nil, ErrorConditionData
+		}
 	}
+
+	return newCondition, nil
 }
 
-func (o *Outcome) AddOrCreateOutcome(outcome *Outcome) (*Outcome, error) {
-	if outcome.NextNode != nil {
-		return &Outcome{NextNode: outcome.NextNode}, nil
+func AddOrCreateOutcome(outcome []*Outcome) ([]*Outcome, error) {
+	newOutCome := []*Outcome{}
+	for i, out := range outcome {
+		if outcome[i].NextNode != nil {
+			newOutCome = append(newOutCome, &Outcome{NextNode: out.NextNode})
+		}
 	}
 
-	return nil, nil
+	return newOutCome, nil
 }
 
 func (t *Tree) ConvertTreeToJson() ([]byte, error) {
